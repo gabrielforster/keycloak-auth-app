@@ -9,7 +9,6 @@
 ## Estrutura do Projeto
 
 ```
-.
 ├── api/
 ├── app/
 ├── opt/
@@ -40,8 +39,8 @@ cd app && npm install && npm run dev
 2.  Faça login com um dos dois usuários de teste abaixo:
 | Usuário             | Senha   | Permissões                                         |
 | ------------------- | ------- | -------------------------------------------------- |
-| `admin`  | `1234`  | Pode listar, criar, editar e excluir itens.      |
-| `user`    | `1234`  | Pode apenas visualizar a lista de itens.         |
+| `admin`             | `1234`  | Pode listar, criar, editar e excluir itens.        |
+| `user`              | `1234`  | Pode apenas visualizar a lista de itens.           |
 
 ### Acessando painel admin do Keycloak
 Acesse o painel admin do Keycloak: **[http://localhost:8080](http://localhost:8080)**
