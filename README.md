@@ -43,3 +43,9 @@ cd app && npm install && npm run dev
 ### Acessando painel admin do Keycloak
 Acesse o painel admin do Keycloak: **[http://localhost:8080](http://localhost:8080)**
 1.  Faça login com o usuário e senha definidos na variável de ambiente `KEYCLOAK_ADMIN_USER` e `KEYCLOAK_ADMIN_PASSWORD`.
+
+
+
+https://github.com/user-attachments/assets/6ece2c26-bb0b-4e96-b8cf-901e55571de8
+
+
