@@ -1,0 +1,74 @@
+{
+  "realm": "gabriel-rocha-n3",
+  "enabled": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "data-read"
+      },
+      {
+        "name": "data-create"
+      },
+      {
+        "name": "data-edit"
+      },
+      {
+        "name": "data-delete"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "frontend",
+      "name": "frontend",
+      "publicClient": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "http://localhost:3001/*"
+      ],
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "backend",
+      "name": "backend",
+      "secret": "backend-secret",
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": true,
+      "protocol": "openid-connect"
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "1234",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "data-read",
+        "data-create",
+        "data-edit",
+        "data-delete"
+      ]
+    },
+    {
+      "username": "user",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "1234",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "data-read"
+      ]
+    }
+  ]
+}
