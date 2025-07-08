@@ -6,6 +6,8 @@ function App() {
   const { keycloak, initialized } = useKeycloak();
   const [data, setData] = useState([]);
   const [form, setForm] = useState({ id: null, name: "", description: "" });
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const api = useMemo(() => {
     const instance = axios.create({
@@ -19,9 +21,10 @@ function App() {
   }, [keycloak.token]);
 
   const fetchData = async () => {
-    const hasRole = keycloak.hasRealmRole("data-read")
+    const hasRole = keycloak.hasRealmRole("data-read");
 
     if (hasRole) {
+      setLoading(true);
       try {
         const response = await api.get("/");
         setData(response.data);
@@ -33,6 +36,8 @@ function App() {
           headers: error.response?.headers
         });
         alert("Você não tem permissão para ver os dados.");
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -52,6 +57,7 @@ function App() {
     e.preventDefault();
     const payload = { name: form.name, description: form.description };
 
+    setSaving(true);
     try {
       if (form.id) {
         await api.put(`/${form.id}`, payload);
@@ -63,6 +69,8 @@ function App() {
     } catch (error) {
       console.error("Erro ao salvar:", error);
       alert("Falha ao salvar. Verifique suas permissões.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -87,85 +95,221 @@ function App() {
   };
 
   if (!initialized) {
-    return <div>Carregando...</div>;
+    return (
+      <div className="container" style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div className="card text-center">
+          <div className="loading-icon pulse">⏳</div>
+          <h2>Carregando...</h2>
+          <p>Inicializando o sistema</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div style={{ fontFamily: "sans-serif", padding: "2rem" }}>
-      <h1>Sistema de Gerenciamento</h1>
-      {!keycloak.authenticated ? (
-        <button onClick={() => keycloak.login()}>Login</button>
-      ) : (
-        <div>
-          <p>
-            Olá, {keycloak.tokenParsed.preferred_username}! (
-            <button onClick={() => keycloak.logout()}>Logout</button>)
-          </p>
-          <p>
-            Suas roles: {keycloak.realmAccess.roles.join(", ")}
-          </p>
-
-          {keycloak.hasRealmRole("data-create") ||
-          keycloak.hasRealmRole("data-edit") ? (
-            <form onSubmit={handleSave} style={{ marginBottom: "2rem" }}>
-              <h3>{form.id ? "Editar Item" : "Cadastrar Novo Item"}</h3>
-              <input
-                type="text"
-                name="name"
-                placeholder="Nome"
-                value={form.name}
-                onChange={handleChange}
-                required
-              />
-              <input
-                type="text"
-                name="description"
-                placeholder="Descrição"
-                value={form.description}
-                onChange={handleChange}
-                required
-              />
+    <div className="fade-in">
+      {/* Header */}
+      <header className="app-header">
+        <div className="container">
+          <div>
+            <h1 className="app-title">Sistema de Gerenciamento</h1>
+            <p className="app-subtitle">Controle de dados com autenticação Keycloak</p>
+          </div>
+          {keycloak.authenticated && (
+            <div className="user-info">
+              <p className="user-greeting">
+                👋 Olá, {keycloak.tokenParsed.preferred_username}!
+              </p>
               <button
-                type="submit"
-                disabled={
-                  form.id
-                    ? !keycloak.hasRealmRole("data-edit")
-                    : !keycloak.hasRealmRole("data-create")
-                }
+                className="btn btn-secondary btn-sm"
+                onClick={() => keycloak.logout()}
               >
-                {form.id ? "Atualizar" : "Criar"}
+                🚪 Sair
               </button>
-              {form.id && (
-                <button type="button" onClick={resetForm}>
-                  Cancelar Edição
-                </button>
-              )}
-            </form>
-          ) : (
-            <p>Você não tem permissão para criar ou editar itens.</p>
+            </div>
           )}
+        </div>
+      </header>
 
-          <h2>Itens Cadastrados</h2>
-          <button onClick={fetchData} disabled={!keycloak.hasRealmRole("data-read")}>
-            Atualizar Lista
-          </button>
-          <ul style={{ listStyle: "none", padding: 0 }}>
-            {data.map((item) => (
-              <li key={item.id} style={{ border: "1px solid #ccc", padding: "1rem", margin: "0.5rem 0" }}>
-                <strong>{item.name}</strong>: {item.description}
-                <div style={{ marginTop: "0.5rem" }}>
-                  {keycloak.hasRealmRole("data-edit") && (
-                    <button onClick={() => handleEdit(item)}>Editar</button>
-                  )}
-                  {keycloak.hasRealmRole("data-delete") && (
-                    <button onClick={() => handleDelete(item.id)}>Deletar</button>
+      <div className="container">
+        {!keycloak.authenticated ? (
+          /* Login Section */
+          <div className="login-section">
+            <div className="card text-center">
+              <div className="login-icon">🔐</div>
+              <h2 className="mb-4">Acesso ao Sistema</h2>
+              <p className="mb-6">
+                Faça login para acessar o sistema de gerenciamento
+              </p>
+              <button
+                onClick={() => keycloak.login()}
+                className="btn btn-success btn-lg"
+              >
+                🔑 Fazer Login
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="slide-in">
+            {/* User Info Card */}
+            <div className="card">
+              <div className="card-header">
+                <h3 className="card-title">👤 Informações do Usuário</h3>
+              </div>
+              <div className="user-info-grid">
+                <div className="user-info-item">
+                  <div className="user-info-label">Nome de Usuário</div>
+                  <div className="user-info-value">{keycloak.tokenParsed.preferred_username}</div>
+                </div>
+                <div className="user-info-item">
+                  <div className="user-info-label">Email</div>
+                  <div className="user-info-value">{keycloak.tokenParsed.email}</div>
+                </div>
+                <div className="user-info-item">
+                  <div className="user-info-label">Permissões</div>
+                  <div className="role-badges">
+                    {keycloak.realmAccess.roles.map((role) => (
+                      <span key={role} className="role-badge">
+                        {role}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Form Section */}
+            {(keycloak.hasRealmRole("data-create") || keycloak.hasRealmRole("data-edit")) && (
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title">
+                    {form.id ? "✏️ Editar Item" : "➕ Cadastrar Novo Item"}
+                  </h3>
+                </div>
+                <form onSubmit={handleSave}>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label className="form-label">Nome *</label>
+                      <input
+                        type="text"
+                        name="name"
+                        className="form-input"
+                        placeholder="Digite o nome do item"
+                        value={form.name}
+                        onChange={handleChange}
+                        required
+                        disabled={saving}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Descrição *</label>
+                      <textarea
+                        name="description"
+                        className="form-textarea"
+                        placeholder="Digite a descrição do item"
+                        value={form.description}
+                        onChange={handleChange}
+                        required
+                        disabled={saving}
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                  <div className="form-actions">
+                    <button
+                      type="submit"
+                      className={`btn ${form.id ? 'btn-success' : 'btn-primary'}`}
+                      disabled={
+                        saving ||
+                        (form.id
+                          ? !keycloak.hasRealmRole("data-edit")
+                          : !keycloak.hasRealmRole("data-create"))
+                      }
+                    >
+                      {saving ? "⏳ Salvando..." : (form.id ? "💾 Atualizar" : "➕ Criar")}
+                    </button>
+                    {form.id && (
+                      <button
+                        type="button"
+                        onClick={resetForm}
+                        className="btn btn-secondary"
+                        disabled={saving}
+                      >
+                        ❌ Cancelar
+                      </button>
+                    )}
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* Data List Section */}
+            <div className="card">
+              <div className="card-header">
+                <h3 className="card-title">📋 Itens Cadastrados</h3>
+                <button
+                  onClick={fetchData}
+                  disabled={!keycloak.hasRealmRole("data-read") || loading}
+                  className="btn btn-secondary btn-sm"
+                >
+                  {loading ? "⏳ Carregando..." : "🔄 Atualizar"}
+                </button>
+              </div>
+
+              {loading ? (
+                <div className="loading-state">
+                  <div className="loading-icon pulse">⏳</div>
+                  <p className="loading-text">Carregando dados...</p>
+                </div>
+              ) : data.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-icon">📭</div>
+                  <p className="empty-text">Nenhum item encontrado</p>
+                  {keycloak.hasRealmRole("data-create") && (
+                    <p className="empty-subtext">
+                      Clique em "Criar" acima para adicionar o primeiro item
+                    </p>
                   )}
                 </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+              ) : (
+                <div className="data-list">
+                  {data.map((item) => (
+                    <div key={item.id} className="data-item">
+                      <div className="data-item-header">
+                        <div>
+                          <h4 className="data-item-title">{item.name}</h4>
+                          <p className="data-item-description">{item.description}</p>
+                        </div>
+                        <div className="data-item-actions">
+                          {keycloak.hasRealmRole("data-edit") && (
+                            <button
+                              onClick={() => handleEdit(item)}
+                              className="btn btn-secondary btn-sm"
+                            >
+                              ✏️ Editar
+                            </button>
+                          )}
+                          {keycloak.hasRealmRole("data-delete") && (
+                            <button
+                              onClick={() => handleDelete(item.id)}
+                              className="btn btn-danger btn-sm"
+                            >
+                              🗑️ Deletar
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="data-item-id">
+                        ID: {item.id}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
