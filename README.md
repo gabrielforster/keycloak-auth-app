@@ -37,10 +37,8 @@ cd app && npm install && npm run dev
 
 1.  Acesse o frontend: **[http://localhost:3001](http://localhost:3001)**
 2.  Faça login com um dos dois usuários de teste abaixo:
-| Usuário             | Senha   | Permissões                                         |
-| ------------------- | ------- | -------------------------------------------------- |
-| `admin`             | `1234`  | Pode listar, criar, editar e excluir itens.        |
-| `user`              | `1234`  | Pode apenas visualizar a lista de itens.           |
+`admin`:`1234` => Pode listar, criar, editar e excluir itens.
+`user`:`1234` => Pode apenas visualizar a lista de itens.
 
 ### Acessando painel admin do Keycloak
 Acesse o painel admin do Keycloak: **[http://localhost:8080](http://localhost:8080)**
